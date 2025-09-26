@@ -2,13 +2,7 @@ package ru.kata.spring.boot_security.demo.models;
 
 import org.springframework.security.core.GrantedAuthority;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Objects;
 import java.util.Set;
 
@@ -23,7 +17,7 @@ public class Role implements GrantedAuthority {
     @Column(unique = true, nullable = false)
     private String name;
 
-    @ManyToMany(mappedBy = "roles")
+    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Set<User> users;
 
     public Role() {}
@@ -58,19 +52,21 @@ public class Role implements GrantedAuthority {
 
     @Override
     public String getAuthority() {
-        return getName();
+        return "ROLE_" + name;
     }
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Role role = (Role) o;
-        return Objects.equals(getId(), role.getId()) && Objects.equals(getName(), role.getName()) && Objects.equals(getUsers(), role.getUsers());
+        return Objects.equals(id, role.id) &&
+                Objects.equals(name, role.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getName(), getUsers());
+        return Objects.hash(id, name);
     }
 
     @Override
@@ -78,7 +74,6 @@ public class Role implements GrantedAuthority {
         return "Role{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", users=" + users +
                 '}';
     }
 }

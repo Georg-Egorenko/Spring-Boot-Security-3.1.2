@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
-import ru.kata.spring.boot_security.demo.services.RoleService;
-import ru.kata.spring.boot_security.demo.services.UserService;
+import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
+import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,44 +16,52 @@ import java.util.HashSet;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Autowired
-    private UserService userService;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private RoleService roleService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public DataInitializer(UserRepository userRepository,
+                           RoleRepository roleRepository,
+                           PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
 
-        userService.findAll().forEach(user -> userService.deleteById(user.getId()));
-        roleService.findAll().forEach(role -> roleService.deleteById(role.getId()));
+        if (!userRepository.findAll().isEmpty()) {
+            System.out.println("=== Data already exists, skipping initialization ===");
+            return;
+        }
 
-        Role adminRole = new Role("ROLE_ADMIN");
-        Role userRole = new Role("ROLE_USER");
-        roleService.save(adminRole);
-        roleService.save(userRole);
+
+        Role adminRole = new Role("ADMIN");
+        Role userRole = new Role("USER");
+        //возможно нужно что-то вставить (save)
+
 
         User admin = new User();
         admin.setUsername("admin");
-        admin.setPassword(passwordEncoder.encode("admin")); // Реальный хэш
+        admin.setPassword(passwordEncoder.encode("admin"));
         admin.setEmail("admin@example.com");
         admin.setFirstName("Admin");
         admin.setLastName("User");
         admin.setRoles(new HashSet<>(Arrays.asList(adminRole, userRole)));
-        userService.save(admin);
+        userRepository.save(admin);
 
-        User user = new User();
-        user.setUsername("user");
-        user.setPassword(passwordEncoder.encode("user")); // Реальный хэш
-        user.setEmail("user@example.com");
-        user.setFirstName("Regular");
-        user.setLastName("User");
-        user.setRoles(new HashSet<>(Arrays.asList(userRole)));
-        userService.save(user);
+
+        User regularUser = new User();
+        regularUser.setUsername("user");
+        regularUser.setPassword(passwordEncoder.encode("user"));
+        regularUser.setEmail("user@example.com");
+        regularUser.setFirstName("Regular");
+        regularUser.setLastName("User");
+        regularUser.setRoles(new HashSet<>(Arrays.asList(userRole)));
+        userRepository.save(regularUser);
 
         System.out.println("=== Test Users Created ===");
         System.out.println("Admin: admin / admin");

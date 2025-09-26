@@ -1,7 +1,6 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,16 +11,21 @@ import ru.kata.spring.boot_security.demo.services.UserService;
 
 @Controller
 @RequestMapping("/user")
-@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class UserController {
 
+    private final UserService userService;
+
     @Autowired
-    private UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
-    public String userProfile(@AuthenticationPrincipal User user, Model model) {
+    public String userProfile(@AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
+                              Model model) {
+        User user = userService.findByUsername(principal.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found with username: " + principal.getUsername()));
         model.addAttribute("user", user);
         return "user/profile";
     }
-
 }

@@ -12,7 +12,7 @@ public class User implements UserDetails {
 
     public User() {}
 
-    public User(String email, String lastName, String firstName,  String password, String username ) {
+    public User(String email, String lastName, String firstName, String password, String username) {
         this.email = email;
         this.lastName = lastName;
         this.firstName = firstName;
@@ -22,9 +22,9 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long Id;
+    private Long id;
 
-    @Column(unique = true,  nullable = false)
+    @Column(unique = true, nullable = false)
     private String username;
 
     @Column(nullable = false)
@@ -34,13 +34,21 @@ public class User implements UserDetails {
     private String lastName;
     private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name="user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Set<Role> getRoles() {
         return roles;
@@ -82,15 +90,6 @@ public class User implements UserDetails {
         this.username = username;
     }
 
-    public long getId() {
-        return Id;
-    }
-
-    public void setId(long id) {
-        Id = id;
-    }
-
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return getRoles();
@@ -118,7 +117,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return  true;
+        return true;
     }
 
     @Override
@@ -126,18 +125,29 @@ public class User implements UserDetails {
         return true;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) &&
+                Objects.equals(username, user.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username);
+    }
 
     @Override
     public String toString() {
         return "User{" +
-                "Id=" + Id +
+                "id=" + id +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", FirstName='" + firstName + '\'' +
-                ", LastName='" + lastName + '\'' +
-                ", Email='" + email + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
                 ", roles=" + roles +
                 '}';
     }
 }
-

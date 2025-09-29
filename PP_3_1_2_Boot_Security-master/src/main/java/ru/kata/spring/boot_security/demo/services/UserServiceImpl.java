@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,17 +12,19 @@ import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoleService roleService;
 
-    @Autowired
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleService roleService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.roleService = roleService;
     }
 
     @Override
@@ -59,7 +60,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void save(User user) {
-        // Кодируем пароль только если он новый или изменен
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
@@ -128,6 +128,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAllUsers() {
         return List.of();
+    }
+
+
+    public void saveOrUpdateUser(User user, List<Long> roleIds) {
+        if (roleIds != null) {
+
+            Set<Role> roles = roleIds.stream()
+                    .map(roleId -> roleService.findById(roleId).orElse(null))
+                    .filter(role -> role != null)
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
+        }
+
+        if (user.getId() == null) {
+            save(user);
+        } else {
+            update(user);
+        }
     }
 
 }

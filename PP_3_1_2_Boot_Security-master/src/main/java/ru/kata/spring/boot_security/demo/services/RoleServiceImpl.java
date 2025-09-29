@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.models.Role;
@@ -15,7 +14,6 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
 
-    @Autowired
     public RoleServiceImpl(RoleRepository roleRepository) {
         this.roleRepository = roleRepository;
     }
@@ -51,11 +49,6 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public void save(Role adminRole) {
-
-    }
-
-    @Override
     @Transactional
     public void delete(Role role) {
         if (role != null) {
@@ -65,11 +58,6 @@ public class RoleServiceImpl implements RoleService {
             }
             roleRepository.delete(role);
         }
-    }
-
-    @Override
-    public void update(Role role) {
-
     }
 
     @Override

@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -12,8 +11,11 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class CurrentUserAdvice {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public CurrentUserAdvice(UserService userService) {
+        this.userService = userService;
+    }
 
     @ModelAttribute("email")
     public String email(@AuthenticationPrincipal UserDetails userDetails) {

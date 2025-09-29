@@ -19,5 +19,5 @@ public interface UserService extends UserDetailsService {
     List<User> findAllWithRoles();
     Optional<User> findByIdWithRoles(Long id);
     List<User> getAllUsers();
-
+    void saveOrUpdateUser(User user, List<Long> roleIds);
 }

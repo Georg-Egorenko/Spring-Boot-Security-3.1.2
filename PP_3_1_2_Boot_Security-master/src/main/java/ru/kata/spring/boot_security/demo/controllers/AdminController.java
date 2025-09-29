@@ -1,9 +1,14 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 import ru.kata.spring.boot_security.demo.models.User;
 import ru.kata.spring.boot_security.demo.services.RoleService;
 import ru.kata.spring.boot_security.demo.services.UserService;
@@ -12,7 +17,6 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -22,81 +26,92 @@ public class AdminController {
     private final UserService userService;
     private final RoleService roleService;
 
-    @Autowired
     public AdminController(UserService userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
     }
 
     @GetMapping("/users")
-    public String listUsers(Model model, Principal principal) {
-        model.addAttribute("users", userService.findAllWithRoles());
-        model.addAttribute("allRoles", roleService.findAll());
+    public ModelAndView listUsers(Principal principal) {
+        ModelAndView mav = new ModelAndView("admin/users");
+        mav.addObject("users", userService.findAllWithRoles());
+        mav.addObject("allRoles", roleService.findAll());
 
-        // Добавляем currentUser для навбара
         if (principal != null) {
-            Optional<User> currentUser = userService.findByUsername(principal.getName());
-            currentUser.ifPresent(user -> model.addAttribute("currentUser", user));
+            userService.findByUsername(principal.getName())
+                    .ifPresent(user -> mav.addObject("currentUser", user));
         }
 
-        return "admin/users";
+        return mav;
     }
 
-
     @GetMapping("/users/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("user", new User());
-        model.addAttribute("allRoles", roleService.findAll());
-        return "admin/user-form";
+    public ModelAndView showCreateForm(Principal principal) {
+        ModelAndView mav = new ModelAndView("admin/user-form");
+        mav.addObject("user", new User());
+        mav.addObject("allRoles", roleService.findAll());
+
+        if (principal != null) {
+            userService.findByUsername(principal.getName())
+                    .ifPresent(user -> mav.addObject("currentUser", user));
+        }
+
+        return mav;
     }
 
     @GetMapping("/users/edit/{id}")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        User user = userService.findByIdWithRoles(id).orElseThrow(() ->
-                new RuntimeException("User not found with id: " + id));
+    public ModelAndView showEditForm(@PathVariable Long id, Principal principal) {
+        ModelAndView mav = new ModelAndView("admin/user-form");
 
-        model.addAttribute("user", user);
-        model.addAttribute("allRoles", roleService.findAll());
-        return "admin/user-form";
+        User user = userService.findByIdWithRoles(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        mav.addObject("user", user);
+        mav.addObject("allRoles", roleService.findAll());
+
+        if (principal != null) {
+            userService.findByUsername(principal.getName())
+                    .ifPresent(currentUser -> mav.addObject("currentUser", currentUser));
+        }
+
+        return mav;
     }
 
     @PostMapping("/users/save")
-    public String saveOrUpdateUser(@ModelAttribute User user,
-                                   @RequestParam(value = "roles", required = false) List<Long> roleIds) {
+    public ModelAndView saveOrUpdateUser(@ModelAttribute User user,
+                                         @RequestParam(value = "roles", required = false) List<Long> roleIds) {
 
-        if (roleIds != null) {
-            user.setRoles(roleIds.stream()
-                    .map(roleId -> roleService.findById(roleId).orElse(null))
-                    .filter(role -> role != null)
-                    .collect(Collectors.toSet()));
-        }
+        userService.saveOrUpdateUser(user, roleIds);
 
-        if (user.getId() == null) {
-            userService.save(user);
-        } else {
-            userService.update(user);
-        }
-
-        return "redirect:/admin/users";
+        return new ModelAndView("redirect:/admin/users");
     }
 
     @GetMapping("/users/delete/{id}")
-    public String showDeleteUserPage(@PathVariable Long id, Model model) {
+    public ModelAndView showDeleteUserPage(@PathVariable Long id, Principal principal) {
+        ModelAndView mav = new ModelAndView("admin/delete-user");
+
         User user = userService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user Id: " + id));
-        model.addAttribute("user", user);
-        return "admin/delete-user";
+
+        mav.addObject("user", user);
+
+        if (principal != null) {
+            userService.findByUsername(principal.getName())
+                    .ifPresent(currentUser -> mav.addObject("currentUser", currentUser));
+        }
+
+        return mav;
     }
 
     @PostMapping("/users/delete/{id}")
-    public String deleteUser(@PathVariable Long id) {
+    public ModelAndView deleteUser(@PathVariable Long id) {
         userService.deleteById(id);
-        return "redirect:/admin/users";
+        return new ModelAndView("redirect:/admin/users");
     }
 
     @GetMapping
-    public String adminPanel() {
-        return "redirect:/admin/users";
+    public ModelAndView adminPanel() {
+        return new ModelAndView("redirect:/admin/users");
     }
 
     @GetMapping("/users/api/{id}")

@@ -11,9 +11,7 @@ public interface RoleService {
     List<Role> findAll();
     Optional<Role> findById(Long id);
     void deleteById(Long id);
-    void save(Role adminRole);
     void delete(Role role);
-    void update(Role role);
     boolean existsById(Long id);
     long count();
 

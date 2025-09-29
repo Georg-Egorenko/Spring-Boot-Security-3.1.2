@@ -1,10 +1,257 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Users List</title>
+  <meta charset="UTF-8">
+  <title>Admin - Users</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h1>Users Management</h1>
-<!-- Таблица пользователей -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Users List</h2>
+    <a th:href="@{/admin/users/new}" class="btn btn-success">Add User</a>
+  </div>
+
+  <table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Username</th>
+      <th>First name</th>
+      <th>Last name</th>
+      <th>Age</th>
+      <th>Email</th>
+      <th>Roles</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user : ${users}">
+      <td th:text="${user.id}"></td>
+      <td th:text="${user.username}"></td>
+      <td th:text="${user.firstName}"></td>
+      <td th:text="${user.lastName}"></td>
+      <td th:text="${user.age}"></td>
+      <td th:text="${user.email}"></td>
+      <td th:text="${#strings.listJoin(user.roles, ', ')}"></td>
+      <td>
+        <button type="button" class="btn btn-info btn-sm edit-btn"
+                th:data-user-id="${user.id}">
+          Edit
+        </button>
+        <button type="button" class="btn btn-danger btn-sm delete-btn"
+                th:data-user-id="${user.id}">
+          Delete
+        </button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal for Edit User -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editForm" th:action="@{/admin/users/save}" method="post">
+          <input type="hidden" name="id" id="editUserId">
+
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" name="username" id="editUsername" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">First name</label>
+            <input type="text" name="firstName" id="editFirstName" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Last name</label>
+            <input type="text" name="lastName" id="editLastName" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" id="editEmail" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Age</label>
+            <input type="number" name="age" id="editAge" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" id="editPassword" class="form-control"
+                   placeholder="Leave blank to keep current password">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Roles</label>
+            <select multiple class="form-select" name="roles" id="editRoles" size="3" required>
+              <option th:each="role : ${allRoles}"
+                      th:value="${role.id}"
+                      th:text="${role.name}">
+              </option>
+            </select>
+            <small class="form-text text-muted">
+              Hold Ctrl (or Cmd on Mac) to select multiple roles
+            </small>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Delete User -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger">Delete User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <strong>Warning!</strong> You are about to delete this user. This action cannot be undone.
+        </div>
+
+        <form id="deleteForm" method="post">
+          <input type="hidden" name="_method" value="delete">
+
+          <div class="mb-3">
+            <label class="form-label"><strong>ID</strong></label>
+            <input type="text" id="deleteUserId" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Username</strong></label>
+            <input type="text" id="deleteUsername" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>First Name</strong></label>
+            <input type="text" id="deleteFirstName" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Last Name</strong></label>
+            <input type="text" id="deleteLastName" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Age</strong></label>
+            <input type="text" id="deleteAge" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Email</strong></label>
+            <input type="text" id="deleteEmail" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Roles</strong></label>
+            <input type="text" id="deleteRoles" class="form-control" readonly>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete User</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+
+    // Обработчики для кнопок Edit
+    document.querySelectorAll('.edit-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const userId = this.getAttribute('data-user-id');
+        loadUserData(userId);
+      });
+    });
+
+    // Обработчики для кнопок Delete
+    document.querySelectorAll('.delete-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const userId = this.getAttribute('data-user-id');
+        loadUserForDelete(userId);
+      });
+    });
+
+    // Кнопка подтверждения удаления
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+      const form = document.getElementById('deleteForm');
+      form.submit();
+    });
+
+    // Загрузка данных для редактирования
+    function loadUserData(userId) {
+      editModal.show();
+
+      fetch('/admin/users/api/' + userId)
+              .then(response => {
+                if (!response.ok) throw new Error('HTTP error: ' + response.status);
+                return response.json();
+              })
+              .then(user => {
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editUsername').value = user.username || '';
+                document.getElementById('editFirstName').value = user.firstName || '';
+                document.getElementById('editLastName').value = user.lastName || '';
+                document.getElementById('editEmail').value = user.email || '';
+                document.getElementById('editAge').value = user.age || '';
+                document.getElementById('editPassword').value = '';
+
+                const rolesSelect = document.getElementById('editRoles');
+                if (user.roles && Array.isArray(user.roles)) {
+                  Array.from(rolesSelect.options).forEach(option => {
+                    const isSelected = user.roles.some(role => role.id == option.value);
+                    option.selected = isSelected;
+                  });
+                }
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading user data: ' + error.message);
+                editModal.hide();
+              });
+    }
+
+    // Загрузка данных для удаления (используем данные из таблицы)
+    function loadUserForDelete(userId) {
+      const row = document.querySelector(`[data-user-id="${userId}"]`).closest('tr');
+      const cells = row.cells;
+
+      // Заполняем форму данными из таблицы
+      document.getElementById('deleteUserId').value = cells[0].textContent;
+      document.getElementById('deleteUsername').value = cells[1].textContent;
+      document.getElementById('deleteFirstName').value = cells[2].textContent;
+      document.getElementById('deleteLastName').value = cells[3].textContent;
+      document.getElementById('deleteAge').value = cells[4].textContent;
+      document.getElementById('deleteEmail').value = cells[5].textContent;
+      document.getElementById('deleteRoles').value = cells[6].textContent;
+
+      // Устанавливаем action формы
+      document.getElementById('deleteForm').action = '/admin/users/delete/' + userId;
+
+      deleteModal.show();
+    }
+  });
+</script>
 </body>
 </html>

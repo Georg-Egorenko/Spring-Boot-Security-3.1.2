@@ -8,6 +8,7 @@ import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class RoleServiceImpl implements RoleService {
@@ -82,4 +83,10 @@ public class RoleServiceImpl implements RoleService {
     public long count() {
         return roleRepository.findAll().size();
     }
+
+    @Override
+    public Set<Role> findRolesByIds(List<Long> roleIds) {
+        throw new UnsupportedOperationException("This method should be in RoleService");
+    }
+
 }

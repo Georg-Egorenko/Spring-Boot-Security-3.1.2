@@ -26,15 +26,20 @@ public class RoleRepositoryImpl implements RoleRepository {
             );
             query.setParameter("name", name);
             return query.getSingleResult();
-        } catch (Exception e) {
+        } catch (javax.persistence.NoResultException e) {
             return null;
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding role by name: " + name, e);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Role> findAll() {
-        TypedQuery<Role> query = entityManager.createQuery("FROM Role", Role.class);
+        TypedQuery<Role> query = entityManager.createQuery(
+                "SELECT r FROM Role r ORDER BY r.id",
+                Role.class
+        );
         return query.getResultList();
     }
 
@@ -44,8 +49,24 @@ public class RoleRepositoryImpl implements RoleRepository {
         return entityManager.find(Role.class, id);
     }
 
+    @Transactional
+    @Override
+    public void save(Role role) {
+        if (role.getId() == null) {
+            entityManager.persist(role);
+        } else {
+            entityManager.merge(role);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void update(Role role) {
+        entityManager.merge(role);
+    }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         Role role = findById(id);
         if (role != null) {
@@ -58,13 +79,16 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
+    @Transactional
     public void delete(Role role) {
         if (role != null) {
+            Role managedRole = entityManager.contains(role) ? role : entityManager.merge(role);
 
-            if (role.getUsers() != null) {
-                role.getUsers().forEach(user -> user.getRoles().remove(role));
+
+            if (managedRole.getUsers() != null) {
+                managedRole.getUsers().forEach(user -> user.getRoles().remove(managedRole));
             }
-            entityManager.remove(entityManager.contains(role) ? role : entityManager.merge(role));
+            entityManager.remove(managedRole);
         }
     }
 
@@ -77,7 +101,10 @@ public class RoleRepositoryImpl implements RoleRepository {
     @Override
     @Transactional(readOnly = true)
     public long count() {
-        TypedQuery<Long> query = entityManager.createQuery("SELECT COUNT(r) FROM Role r", Long.class);
+        TypedQuery<Long> query = entityManager.createQuery(
+                "SELECT COUNT(r) FROM Role r",
+                Long.class
+        );
         return query.getSingleResult();
     }
 }

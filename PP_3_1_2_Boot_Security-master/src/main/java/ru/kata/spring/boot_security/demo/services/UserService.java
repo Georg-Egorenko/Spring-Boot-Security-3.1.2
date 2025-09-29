@@ -16,4 +16,8 @@ public interface UserService extends UserDetailsService {
     void delete(User user);
     boolean existsById(Long id);
     long count();
+    List<User> findAllWithRoles();
+    Optional<User> findByIdWithRoles(Long id);
+    List<User> getAllUsers();
+
 }

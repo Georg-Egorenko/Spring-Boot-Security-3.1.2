@@ -49,8 +49,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    @Transactional
     public void save(User user) {
-        entityManager.persist(user);
+        if (user.getId() == null) {
+            entityManager.persist(user);
+        } else {
+            entityManager.merge(user);
+        }
     }
 
     @Override
@@ -82,5 +87,28 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> findByEmail(String email) {
         return Optional.empty();
+    }
+
+    @Override
+    public List<User> findAllWithRoles() {
+        TypedQuery<User> query = entityManager.createQuery(
+                "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles",
+                User.class
+        );
+        return query.getResultList();
+    }
+
+    @Override
+    public User findByIdWithRoles(Long id) {
+        try {
+            TypedQuery<User> query = entityManager.createQuery(
+                    "SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.id = :id",
+                    User.class
+            );
+            query.setParameter("id", id);
+            return query.getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

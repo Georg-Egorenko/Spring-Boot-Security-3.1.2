@@ -1,0 +1,37 @@
+package ru.kata.spring.boot_security.demo.controllers;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import ru.kata.spring.boot_security.demo.services.UserService;
+
+import java.util.stream.Collectors;
+
+@ControllerAdvice
+public class CurrentUserAdvice {
+
+    @Autowired
+    private UserService userService;
+
+    @ModelAttribute("email")
+    public String email(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            return userService.findByUsername(userDetails.getUsername())
+                    .map(user -> user.getEmail())
+                    .orElse(userDetails.getUsername());
+        }
+        return "Not authenticated";
+    }
+
+    @ModelAttribute("roles")
+    public String roles(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            return userDetails.getAuthorities().stream()
+                    .map(auth -> auth.getAuthority().replace("ROLE_", ""))
+                    .collect(Collectors.joining(", "));
+        }
+        return "No roles";
+    }
+}

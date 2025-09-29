@@ -12,12 +12,13 @@ public class User implements UserDetails {
 
     public User() {}
 
-    public User(String email, String lastName, String firstName, String password, String username) {
+    public User(String email, String lastName, String firstName, String password, String username, int age) {
         this.email = email;
         this.lastName = lastName;
         this.firstName = firstName;
         this.password = password;
         this.username = username;
+        this.age = age;
     }
 
     @Id
@@ -32,7 +33,17 @@ public class User implements UserDetails {
 
     private String firstName;
     private String lastName;
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
     private String email;
+    private int age;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(

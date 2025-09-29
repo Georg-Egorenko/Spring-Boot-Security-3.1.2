@@ -1,18 +1,18 @@
 package ru.kata.spring.boot_security.demo.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -34,13 +34,7 @@ public class UserServiceImpl implements UserService {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                user.getRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
-                        .collect(Collectors.toList())
-        );
+        return user;
     }
 
     @Override
@@ -65,7 +59,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void save(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Кодируем пароль только если он новый или изменен
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         userRepository.save(user);
     }
 
@@ -77,7 +74,6 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("User not found with id: " + user.getId());
         }
 
-        // Сохраняем старый пароль, если новый не предоставлен
         if (user.getPassword() == null || user.getPassword().isEmpty() ||
                 user.getPassword().equals(existingUser.getPassword())) {
             user.setPassword(existingUser.getPassword());
@@ -112,4 +108,26 @@ public class UserServiceImpl implements UserService {
     public long count() {
         return userRepository.findAll().size();
     }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> findAllWithRoles() {
+
+        return userRepository.findAllWithRoles();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<User> findByIdWithRoles(Long id) {
+
+        User user = userRepository.findByIdWithRoles(id);
+        return Optional.ofNullable(user);
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return List.of();
+    }
+
 }

@@ -16,19 +16,23 @@
 
     <h3>About user</h3>
 
-    <ul class="list-group mb-3">
-        <li class="list-group-item"><b>ID:</b> <span th:text="${user.id}"></span></li>
-        <li class="list-group-item"><b>First name:</b> <span th:text="${user.firstName}"></span></li>
-        <li class="list-group-item"><b>Last name:</b> <span th:text="${user.lastName}"></span></li>
-        <li class="list-group-item"><b>Email:</b> <span th:text="${user.email}"></span></li>
-        <li class="list-group-item"><b>Age:</b> <span th:text="${user.age}"></span></li>
+    <ul class="list-group mb-3" th:if="${currentUser}">
+        <li class="list-group-item"><b>ID:</b> <span th:text="${currentUser.id}"></span></li>
+        <li class="list-group-item"><b>First name:</b> <span th:text="${currentUser.firstName}"></span></li>
+        <li class="list-group-item"><b>Last name:</b> <span th:text="${currentUser.lastName}"></span></li>
+        <li class="list-group-item"><b>Email:</b> <span th:text="${currentUser.email}"></span></li>
+        <li class="list-group-item"><b>Age:</b> <span th:text="${currentUser.age}"></span></li>
         <li class="list-group-item">
             <b>Role:</b>
-            <span th:each="role, iterStat : ${user.roles}"
+            <span th:each="role, iterStat : ${currentUser.roles}"
                   th:text="${role.name}"
                   th:append="${iterStat.last ? '' : ', '}"></span>
         </li>
     </ul>
+
+    <div th:unless="${currentUser}" class="alert alert-warning">
+        User data not available
+    </div>
 </div>
 
 </body>

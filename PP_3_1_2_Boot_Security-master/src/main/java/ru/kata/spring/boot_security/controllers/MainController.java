@@ -16,4 +16,13 @@ public class MainController {
     public ModelAndView login() {
         return new ModelAndView("login");
     }
+
+    @GetMapping("/admin/users")
+    public ModelAndView adminUsers() {
+        return new ModelAndView("admin/users");
+    }
+    @GetMapping("/user")
+    public ModelAndView userProfile() {
+        return new ModelAndView("user/profile");
+    }
 }

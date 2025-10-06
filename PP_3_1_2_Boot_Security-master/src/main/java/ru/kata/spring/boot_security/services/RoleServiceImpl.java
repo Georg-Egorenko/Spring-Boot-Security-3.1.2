@@ -6,7 +6,6 @@ import ru.kata.spring.boot_security.models.Role;
 import ru.kata.spring.boot_security.repositories.RoleRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -22,12 +21,6 @@ public class RoleServiceImpl implements RoleService {
     @Transactional(readOnly = true)
     public List<Role> findAll() {
         return roleRepository.findAll();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<Role> findById(Long id) {
-        return Optional.ofNullable(roleRepository.findById(id));
     }
 
     @Override
@@ -75,6 +68,11 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Set<Role> findRolesByIds(List<Long> roleIds) {
         throw new UnsupportedOperationException("This method should be in RoleService");
+    }
+
+    @Override
+    public Role findById(Long id) {
+        return roleRepository.findById(id);
     }
 
 }

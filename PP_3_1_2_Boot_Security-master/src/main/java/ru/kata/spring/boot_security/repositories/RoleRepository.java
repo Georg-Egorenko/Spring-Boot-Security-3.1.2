@@ -19,4 +19,5 @@ public interface RoleRepository {
     void delete(Role role);
     boolean existsById(Long id);
     long count();
+    Role getReferenceById(Long id);
 }

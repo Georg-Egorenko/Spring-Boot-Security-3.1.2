@@ -107,4 +107,9 @@ public class RoleRepositoryImpl implements RoleRepository {
         );
         return query.getSingleResult();
     }
+
+    @Override
+    public Role getReferenceById(Long id) {
+        return entityManager.getReference(Role.class, id);
+    }
 }

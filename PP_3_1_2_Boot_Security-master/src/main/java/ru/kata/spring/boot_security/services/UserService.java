@@ -27,4 +27,5 @@ public interface UserService extends UserDetailsService {
     User getUserByIdWithRoles(Long id);
     void deleteUserById(Long id, Principal principal);
     Map<String, Object> getUserDtoById(Long id);
+
 }

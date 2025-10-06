@@ -41,7 +41,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Role adminRole = new Role("ADMIN");
         Role userRole = new Role("USER");
-        //возможно нужно что-то вставить (save)
+
 
 
         User admin = new User();
